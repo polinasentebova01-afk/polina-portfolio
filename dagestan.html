@@ -1,0 +1,162 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>AI-сомелье — Перекрёсток Select · Кейс</title>
+<link rel="stylesheet" href="../styles.css">
+<link rel="stylesheet" href="../cases.css">
+</head>
+<body data-screen-label="Кейс 01 — AI-сомелье">
+
+<nav class="nav">
+  <div class="nav-inner">
+    <a href="../index.html" class="brand"><span class="dot"></span>Полина</a>
+    <div class="nav-links">
+      <a href="../index.html#work">Кейсы</a>
+      <a href="../index.html#contact">Контакты</a>
+    </div>
+    <a href="../index.html#contact" class="nav-cta">Связаться →</a>
+  </div>
+</nav>
+
+<div class="case-wrap">
+
+  <div class="case-top">
+    <a href="../index.html#work" class="back">← Все кейсы</a>
+    <span class="case-index">Кейс 01 / 04</span>
+  </div>
+
+  <!-- HERO -->
+  <header class="case-hero" data-reveal>
+    <div class="eyebrow">AI-сомелье · Перекрёсток Select</div>
+    <h1>Электронный сомелье</h1>
+    <p class="tagline">Цифровой AI-консультант, который помогает покупателям подобрать вино в зависимости от повода и пожеланий в магазине</p>
+    <div class="case-meta">
+      <div class="m"><div class="k">Роль</div><div class="v">Content lead · TOV &amp; голос продукта</div></div>
+      <div class="m"><div class="k">Продукт</div><div class="v">«Перекрёсток Select» · MVP</div></div>
+      <div class="m"><div class="k">Формат</div><div class="v">Командный проект</div></div>
+      <div class="m"><div class="k">Стадия</div><div class="v">MVP · пользовательская валидация</div></div>
+    </div>
+  </header>
+
+  <!-- SHOWCASE -->
+  <section class="case-section" style="padding-top:20px;" data-reveal>
+    <div class="proto-canvas stage dark" style="height:680px;">
+      <div class="embed" data-src="../proto/wine_kiosk.html" data-vw="430" data-vh="860" data-preset="wine" data-mode="contain" data-interactive="true"></div>
+    </div>
+    <div class="proto-cap"><span class="live" style="color:oklch(0.7 0.16 150);font-weight:700;">● LIVE</span> Интерактивный концептуальный прототип для демонстрации механики сенсорных ассоциаций. Все вина, описания и визуальные сцены демонстрационными. В реальном MVP визуальные сцены отсутствовали — изображения использовались как авторская визуализация того, какие ассоциации и настроение должны возникать у пользователя при чтении текстовых описаний.</div>
+  </section>
+
+  <!-- PROBLEM -->
+  <section class="case-section">
+    <div data-reveal>
+      <span class="sec-tag"><span class="no">01</span>Задача</span>
+      <h2 class="sec-title">Разработать TOV и голос продукта</h2>
+      <p class="sec-intro">Креативное описание продуктовых карточек вина с органолептикой: вайб, аромат, вкус, гастропара. Пожелания - контент, который вызывает эмоции.</p>
+    </div>
+    <div class="bento">
+      <div class="cell c4 dark" data-reveal>
+        <div class="ckey">Контекст</div>
+        <div class="ch" style="font-size:24px;">MVP в сжатые сроки</div>
+        <p class="ct">Открытие флагманского «Перекрёсток Select». Контент-механику нужно было спроектировать и проверить параллельно с разработкой.</p>
+      </div>
+      <div class="cell c4" data-reveal>
+        <div class="ckey">Ограничения</div>
+        <ul class="clist">
+          <li>Профессиональная терминология («кислотность», «танинность») создает дополнительный когнитивный барьер для выбора.</li>
+          <li>Авторские описания сложно синхронизировать с позиционированием бренда и единым пользовательским опытом.</li>
+          <li>Креатив в тексте плохо масштабируются: качество зависит от автора, а промах в тоне или образах может снижать доверие к продукту.</li>
+        </ul>
+      </div>
+      <div class="cell c4 paper" data-reveal>
+        <div class="ckey">Настоящая задача</div>
+        <p class="ct">Покупатели выбирают не набор вкусовых характеристик, а сценарий потребления. Задача контента — помочь быстро представить момент, настроение и повод, для которого подходит вино.</p>
+      </div>
+    </div>
+  </section>
+
+  <!-- PROCESS -->
+  <section class="case-section">
+    <div data-reveal>
+      <span class="sec-tag blue"><span class="no">02</span>Процесс</span>
+      <h2 class="sec-title">Сенсорный сторителлинг + промпт-сценарии</h2>
+      <p class="sec-intro">Я разработала tone of voice электронного сомелье и создала контент-механику, которая переводит органолептику вина в понятные потребителю эмоции, сценарии потребления и гастрономические ассоциации с учетом ДНК бренда</p>
+    </div>
+    <div class="bento">
+      <div class="cell c5" data-reveal>
+        <div class="ch">1 · Ассоциативный сенсорный сторителлинг</div>
+        <p class="ct">Разработала подход, в котором органолептика и ДНК бренда переводятся в эмоциональные и визуальные ассоциации — они создают атмосферу и лайфстайл-контекст потребления вместо перечня тэгов.</p>
+        <ul class="clist" style="margin-top:18px;">
+          <li>Органолептика → эмоция и визуальный образ</li>
+          <li>Атмосфера и повод вместо дегустационной таблицы</li>
+          <li>Простой, образный язык вместо жаргона</li>
+        </ul>
+      </div>
+      <div class="cell c7 blue" data-reveal>
+        <div class="ckey">2 · Промпт-сценарии</div>
+        <div class="ch" style="font-size:28px;max-width:20ch;">Механика, которая даёт каждому вину свой характер.</div>
+        <p class="ct" style="max-width:46ch;">Спроектировала промпт-сценарии для генерации сенсорных описаний винных карточек и механику эмоционально-ассоциативной подачи. За счёт неё каждое вино получает уникальный характер — через текст, а не через спецификацию.</p>
+      </div>
+      <div class="cell c12 paper flush" data-reveal style="padding:0;">
+        <div style="padding:30px 30px 0;"><div class="ckey">Структура описания — от вайба к органолептике</div></div>
+        <div class="ba" style="padding:0 30px 30px;">
+          <div class="cell c6" style="grid-column:auto;"><div class="ch" style="font-size:18px;">Вайб</div><p class="ct">«Теплый летний вечер на даче. Вы устраиваетесь на веранде с бокалом белого вина. В воздухе смешались запахи цветущей липы, свежескошенной травы и вечерней свежести...»</p></div>
+          <div class="cell c6" style="grid-column:auto;"><div class="ch" style="font-size:18px;">Аромат · вкус · гастропара</div><p class="ct">Белые цветы, легкие травяные ноты сладкие цитрусы.</p></div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- RESOLUTION -->
+  <section class="case-section">
+    <div data-reveal>
+      <span class="sec-tag mint"><span class="no">03</span>Решение</span>
+      <h2 class="sec-title">Вино, у которого есть характер</h2>
+      <p class="sec-intro">Контент-механика, в которой каждое вино представлено через сенсорную историю: вайб → аромат → вкус → гастропара. Голос продукта — единый, эмоциональный, узнаваемый.</p>
+    </div>
+    <div class="bento">
+      <div class="cell c3 mint" data-reveal><div class="ch" style="font-size:19px;">Единый TOV</div><p class="ct">Голос AI-консультанта, общий для всех карточек.</p></div>
+      <div class="cell c3" data-reveal><div class="ch" style="font-size:19px;">Сенсорная история</div><p class="ct">Вайб, аромат, вкус и гастропара — как короткий рассказ.</p></div>
+      <div class="cell c3" data-reveal><div class="ch" style="font-size:19px;">Уникальность</div><p class="ct">Промпт-механика даёт каждому вину свой характер.</p></div>
+      <div class="cell c3" data-reveal><div class="ch" style="font-size:19px;">Узнаваемый сценарий</div><p class="ct">Описание задаёт повод и атмосферу потребления.</p></div>
+    </div>
+  </section>
+
+  <!-- RESULTS -->
+  <section class="case-section">
+    <div data-reveal>
+      <span class="sec-tag"><span class="no">04</span>Результат</span>
+      <h2 class="sec-title">MVP прошёл пользовательскую валидацию.</h2>
+    </div>
+    <div class="bento">
+      <div class="cell c4 blue" data-reveal><div class="ckey">Статус</div><div class="ch" style="font-size:24px;">Прошёл валидацию</div><div class="metric-lbl">MVP AI-сомелье успешно прошёл первичную пользовательскую проверку</div></div>
+      <div class="cell c4" data-reveal><div class="ckey">Моя роль</div><div class="ch" style="font-size:24px;">TOV + механика</div><div class="metric-lbl">голос продукта и промпт-сценарии генерации описаний</div></div>
+      <div class="cell c4 dark" data-reveal><div class="ckey">Огласка</div><div class="ch" style="font-size:24px;"><a href="https://daily.afisha.ru/news/100437-perekrestok-zapuskaet-v-moskve-kompaktnye-magaziny-s-gotovoy-edoy-kofe-i-fidzhital-resheniyami/" target="_blank" rel="noopener" style="color:inherit;">Публикация новости о запуске в прессе ↗</a></div><div class="metric-lbl"></div></div>
+    </div>
+  </section>
+
+  <!-- NEXT -->
+  <section class="case-section" style="padding-top:6px;">
+    <a class="next-card" href="chat.html" data-reveal>
+      <div>
+        <div class="nk-k">Следующий кейс · 02</div>
+        <div class="nk-t">Анонс Writer →</div>
+      </div>
+      <span class="nk-arrow">↗</span>
+    </a>
+  </section>
+
+</div>
+
+<footer class="foot case-wrap">
+  <div class="foot-inner">
+    <span>© 2026 Полина Сентебова</span>
+    <span><a href="../index.html" style="color:var(--ink);font-weight:600;">На главную ↑</a></span>
+  </div>
+</footer>
+
+<script src="../embed.js"></script>
+<script src="../reveal.js"></script>
+</body>
+</html>

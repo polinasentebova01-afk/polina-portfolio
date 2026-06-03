@@ -1,0 +1,768 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Mobile prototype — ChatGPT + Telegram</title>
+<style>
+*{box-sizing:border-box;margin:0;padding:0;-webkit-font-smoothing:antialiased}
+body{font-family:-apple-system,BlinkMacSystemFont,"SF Pro Text","Segoe UI",Roboto,sans-serif;background:#1f1f1f;min-height:100vh;display:flex;flex-direction:column;align-items:center;padding:24px;gap:18px}
+
+.phone{width:390px;height:810px;background:#000;border-radius:48px;border:9px solid #0a0a0a;overflow:hidden;position:relative;box-shadow:0 30px 80px rgba(0,0,0,.55)}
+.notch{position:absolute;top:12px;left:50%;transform:translateX(-50%);width:118px;height:30px;background:#000;border-radius:18px;z-index:300}
+.home-indicator{position:absolute;bottom:8px;left:50%;transform:translateX(-50%);width:134px;height:5px;background:#0d0d0d;border-radius:3px;z-index:250;transition:background .3s,width .3s,opacity .3s}
+.home-indicator.dark{background:rgba(255,255,255,.85)}
+.home-indicator.swiping{opacity:.6}
+
+.toast{position:absolute;bottom:90px;left:50%;transform:translateX(-50%) translateY(20px);background:rgba(30,30,30,.92);color:#fff;padding:10px 18px;border-radius:14px;font-size:13.5px;font-weight:500;opacity:0;transition:opacity .25s,transform .25s;z-index:400;pointer-events:none;display:flex;align-items:center;gap:8px;backdrop-filter:blur(10px)}
+.toast.show{opacity:1;transform:translateX(-50%) translateY(0)}
+.toast svg{width:15px;height:15px}
+
+.app-stack{display:flex;width:200%;height:100%;transform:translateX(0);transition:transform .55s cubic-bezier(.4,0,.2,1)}
+.app-stack.show-telegram{transform:translateX(-50%)}
+.app{width:50%;height:100%;flex-shrink:0;display:flex;flex-direction:column;overflow:hidden;position:relative}
+.chatgpt-app{background:#fff}
+.telegram-app{background:#0E1621}
+
+.statusbar{height:50px;display:flex;justify-content:space-between;align-items:flex-end;padding:0 28px 8px;font-size:15px;font-weight:600;color:#0d0d0d;position:relative;z-index:5;flex-shrink:0}
+.statusbar.dark{color:#fff}
+.statusbar .right{display:flex;gap:5px;align-items:center}
+.sb-signal{display:flex;gap:1.5px;align-items:flex-end;height:11px}
+.sb-signal i{display:block;width:3px;background:currentColor;border-radius:1px}
+.sb-signal i:nth-child(1){height:4px}
+.sb-signal i:nth-child(2){height:6px}
+.sb-signal i:nth-child(3){height:8px}
+.sb-signal i:nth-child(4){height:10px}
+.sb-wifi{width:16px;height:12px}
+.sb-wifi svg{width:16px;height:12px;fill:currentColor}
+.sb-battery{width:28px;height:13px;border:1.5px solid currentColor;border-radius:3.5px;position:relative;padding:1.5px;margin-left:2px}
+.sb-battery::after{content:'';position:absolute;right:-3.5px;top:4px;width:2px;height:5px;background:currentColor;border-radius:0 1.5px 1.5px 0}
+.sb-battery i{display:block;width:100%;height:100%;background:currentColor;border-radius:1px}
+
+/* === CHATGPT === */
+.chatgpt-app .app-header{display:flex;align-items:center;justify-content:space-between;padding:6px 12px;height:48px;flex-shrink:0;background:#fff}
+.cg-side{display:flex;align-items:center;gap:8px;width:60px}
+.cg-side.right{justify-content:flex-end}
+.cg-title{flex:1;text-align:center;display:flex;justify-content:center;align-items:center;gap:4px;font-size:16px;font-weight:600;color:#0d0d0d}
+.cg-title svg{width:14px;height:14px;color:#8e8e8e}
+.cg-icon{width:36px;height:36px;display:flex;align-items:center;justify-content:center;color:#0d0d0d;border-radius:50%}
+.cg-icon svg{width:22px;height:22px}
+
+.cg-chat{position:relative;flex:1;display:flex;flex-direction:column;overflow:hidden}
+.cg-messages{flex:1;overflow-y:auto;padding:8px 0 6px;scroll-behavior:smooth;background:#fff}
+.cg-messages::-webkit-scrollbar{width:0}
+.cg-welcome{text-align:center;padding:30px 24px 22px}
+.cg-welcome-icon{width:56px;height:56px;background:#FFD43A;border-radius:14px;display:inline-flex;align-items:center;justify-content:center;font-size:12px;font-weight:700;color:#000;margin-bottom:14px;letter-spacing:.5px}
+.cg-welcome-title{font-size:22px;font-weight:600;margin-bottom:12px;color:#0d0d0d}
+.cg-welcome-desc{font-size:14px;line-height:1.55;color:#5d5d5d}
+
+.cg-msg-wrap{padding:5px 12px;animation:pop .25s ease-out}
+@keyframes pop{0%{opacity:0;transform:translateY(4px)}100%{opacity:1;transform:translateY(0)}}
+.cg-msg-user{display:flex;justify-content:flex-end}
+.cg-msg-user-bubble{background:#ececec;border-radius:20px;padding:9px 14px;max-width:84%;font-size:14.5px;line-height:1.45;color:#0d0d0d;white-space:pre-wrap;word-wrap:break-word}
+.cg-msg-assistant{font-size:14.5px;line-height:1.55;color:#0d0d0d;padding:6px 4px;border-radius:8px;transition:background .3s}
+.cg-msg-assistant.selected{background:rgba(0,122,255,.22)}
+.cg-msg-assistant p{margin-bottom:8px}
+.cg-msg-assistant ol{padding-left:20px;margin:6px 0 4px}
+.cg-msg-assistant ol li{margin-bottom:8px;padding-left:2px}
+.cg-msg-actions{display:flex;gap:0;margin-top:6px;color:#8e8e8e}
+.cg-msg-actions svg{width:15px;height:15px;padding:6px;box-sizing:content-box}
+
+.cg-typing{display:flex;gap:4px;padding:6px 4px;align-items:center}
+.cg-typing span{width:7px;height:7px;border-radius:50%;background:#999;animation:dot 1.2s infinite}
+.cg-typing span:nth-child(2){animation-delay:.18s}
+.cg-typing span:nth-child(3){animation-delay:.36s}
+@keyframes dot{0%,60%,100%{opacity:.3;transform:scale(.8)}30%{opacity:1;transform:scale(1.15)}}
+
+.cg-input-area{padding:6px 10px 26px;flex-shrink:0;background:#fff}
+.cg-input-box{background:#f4f4f4;border-radius:24px;padding:6px 6px 6px 12px;display:flex;align-items:center;gap:6px;min-height:48px}
+.cg-input-plus{width:32px;height:32px;display:flex;align-items:center;justify-content:center;color:#5d5d5d;flex-shrink:0}
+.cg-input-plus svg{width:22px;height:22px}
+.cg-input-text{flex:1;font-size:15px;color:#8e8e8e;line-height:1.4;min-height:24px;display:flex;align-items:center;white-space:pre-wrap;word-wrap:break-word;overflow-wrap:break-word;padding:4px 0;min-width:0}
+.cg-input-text.filled{color:#0d0d0d}
+.cg-input-cursor::after{content:'';display:inline-block;width:2px;height:18px;background:#0d0d0d;margin-left:1px;vertical-align:-3px;animation:blink 1s infinite}
+@keyframes blink{50%{opacity:0}}
+.cg-input-icon{width:34px;height:34px;display:flex;align-items:center;justify-content:center;color:#5d5d5d;flex-shrink:0}
+.cg-input-icon svg{width:22px;height:22px}
+.cg-input-send{width:32px;height:32px;border-radius:50%;background:#000;color:#fff;display:flex;align-items:center;justify-content:center;flex-shrink:0}
+.cg-input-send svg{width:16px;height:16px}
+
+.cg-canvas{position:absolute;top:0;left:0;right:0;bottom:0;background:#fff;transform:translateY(100%);transition:transform .45s cubic-bezier(.4,0,.2,1);z-index:50;display:flex;flex-direction:column}
+.cg-canvas.open{transform:translateY(0)}
+.cg-canvas-header{display:flex;align-items:center;justify-content:space-between;padding:8px 10px;height:52px;border-bottom:1px solid #f0f0f0;flex-shrink:0}
+.cg-canvas-hl{display:flex;align-items:center;gap:4px;min-width:0;flex:1}
+.cg-canvas-close{width:36px;height:36px;display:flex;align-items:center;justify-content:center;color:#0d0d0d;flex-shrink:0}
+.cg-canvas-close svg{width:22px;height:22px}
+.cg-canvas-title{font-size:14px;font-weight:600;display:flex;align-items:center;gap:4px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;min-width:0;color:#0d0d0d}
+.cg-canvas-title svg{width:13px;height:13px;color:#8e8e8e;flex-shrink:0}
+.cg-canvas-hr{display:flex;gap:0;flex-shrink:0}
+.cg-canvas-hr .cg-icon svg{width:20px;height:20px}
+.cg-canvas-body{flex:1;overflow-y:auto;padding:20px 22px;position:relative;background:#fff}
+.cg-canvas-body::-webkit-scrollbar{width:0}
+.cg-canvas-h1{font-size:18px;font-weight:600;line-height:1.4;margin-bottom:18px;color:#0d0d0d;transition:opacity .25s,background .3s}
+.cg-canvas-h1.highlight{background:#b3d4fc}
+.cg-canvas-p{font-size:14px;line-height:1.65;color:#0d0d0d;margin-bottom:14px}
+.cg-snip{font-weight:500}
+
+.cg-floating{position:absolute;background:#fff;border:1px solid #d0d0d0;border-radius:22px;padding:6px 6px 6px 14px;display:flex;align-items:center;gap:8px;box-shadow:0 8px 24px rgba(0,0,0,.18);max-width:300px;z-index:10;opacity:0;transform:translateY(-6px);transition:opacity .25s,transform .25s;font-size:13px;color:#0d0d0d;line-height:1.35}
+.cg-floating.show{opacity:1;transform:translateY(0)}
+.cg-floating-send{width:28px;height:28px;border-radius:50%;background:#000;color:#fff;display:flex;align-items:center;justify-content:center;flex-shrink:0}
+.cg-floating-send svg{width:13px;height:13px}
+
+/* === TELEGRAM === */
+.telegram-app .tg-header{display:flex;align-items:center;padding:6px 12px 10px;background:#212D3B;gap:8px;border-bottom:.5px solid #0a1018;flex-shrink:0}
+.tg-back{color:#6e9fc7;font-size:14px;display:flex;align-items:center;gap:1px;width:62px}
+.tg-back svg{width:14px;height:14px}
+.tg-title-block{flex:1;text-align:center;color:#fff;font-size:15px;font-weight:500;line-height:1.2}
+.tg-status{font-size:11px;color:#7a8a99;font-weight:400;margin-top:2px;min-height:13px}
+.tg-avatar{width:34px;height:34px;border-radius:50%;background:linear-gradient(135deg,#ff9a76,#d4537e);flex-shrink:0;display:flex;align-items:center;justify-content:center;color:#fff;font-size:12px;font-weight:500}
+
+.tg-messages{flex:1;overflow-y:auto;padding:12px 10px 8px;display:flex;flex-direction:column;gap:6px;background:#0E1621;scroll-behavior:smooth}
+.tg-messages::-webkit-scrollbar{width:0}
+.tg-bubble{max-width:80%;padding:7px 11px;border-radius:14px;font-size:14px;line-height:1.4;color:#fff;word-wrap:break-word;position:relative;transition:box-shadow .3s,background .3s}
+.tg-bubble.in{align-self:flex-start;background:#182533;border-bottom-left-radius:4px}
+.tg-bubble.out{align-self:flex-end;background:#8675DC;border-bottom-right-radius:4px}
+.tg-bubble.appear{animation:pop .25s ease-out}
+.tg-bubble.selected{box-shadow:0 0 0 2px rgba(120,170,255,.85);background:rgba(120,170,255,.22)!important}
+.tg-time{font-size:10px;color:rgba(255,255,255,.55);margin-left:6px;white-space:nowrap;float:right;margin-top:4px;line-height:1}
+.tg-check{margin-left:2px;font-size:11px;color:rgba(255,255,255,.85)}
+.tg-typing{display:inline-flex;gap:3px;align-items:center;padding:5px 6px}
+.tg-typing span{width:7px;height:7px;border-radius:50%;background:rgba(255,255,255,.55);animation:dot 1.2s infinite}
+.tg-typing span:nth-child(2){animation-delay:.18s}
+.tg-typing span:nth-child(3){animation-delay:.36s}
+
+.tg-input-area{display:flex;align-items:center;padding:8px 10px 22px;background:#212D3B;gap:10px;border-top:.5px solid #0a1018;flex-shrink:0}
+.tg-input-field{flex:1;background:#182533;border-radius:18px;padding:8px 13px;color:#fff;font-size:14px;min-height:20px;display:flex;align-items:center;line-height:1.3;white-space:pre-wrap;word-wrap:break-word;overflow-wrap:break-word;min-width:0}
+.tg-input-field.placeholder{color:#5d7080}
+.tg-iicon{color:#6e9fc7;font-size:20px;width:22px;height:22px;display:flex;align-items:center;justify-content:center}
+.tg-iicon svg{width:22px;height:22px;fill:none;stroke:currentColor;stroke-width:1.8;stroke-linecap:round;stroke-linejoin:round}
+.tg-input-cursor::after{content:'';display:inline-block;width:2px;height:15px;background:#fff;margin-left:1px;vertical-align:-3px;animation:blink 1s infinite}
+
+.controls{display:flex;gap:10px;align-items:center}
+.controls button{background:#fff;color:#0d0d0d;border:1px solid #d0d0d0;padding:9px 18px;border-radius:10px;font-size:14px;cursor:pointer;font-family:inherit;display:inline-flex;align-items:center;gap:8px;font-weight:500}
+.controls button:hover{background:#f4f4f4}
+.controls button:disabled{opacity:.5;cursor:not-allowed}
+.controls button:active{transform:scale(.97)}
+.controls svg{width:14px;height:14px;fill:none;stroke:currentColor;stroke-width:2;stroke-linecap:round;stroke-linejoin:round}
+.hint{font-size:12px;color:#aaa;text-align:center;max-width:380px;line-height:1.5}
+</style>
+</head>
+<body>
+
+<div class="phone">
+  <div class="notch"></div>
+  <div class="home-indicator" id="homeIndicator"></div>
+  <div class="toast" id="toast"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><polyline points="20 6 9 17 4 12"/></svg><span id="toastText">Скопировано</span></div>
+
+  <div class="app-stack" id="appStack">
+
+    <!-- ChatGPT app -->
+    <div class="app chatgpt-app">
+      <div class="statusbar">
+        <span>9:41</span>
+        <span class="right">
+          <span class="sb-signal"><i></i><i></i><i></i><i></i></span>
+          <span class="sb-wifi"><svg viewBox="0 0 16 12"><path d="M8 3c2.2 0 4.2.84 5.72 2.2l-.85.94A6.5 6.5 0 0 0 8 4.3a6.5 6.5 0 0 0-4.87 1.84l-.85-.94A8.46 8.46 0 0 1 8 3zm0 2.6c1.48 0 2.83.55 3.86 1.46l-.85.94A4.8 4.8 0 0 0 8 6.9a4.8 4.8 0 0 0-3.01 1.1l-.85-.94A6.46 6.46 0 0 1 8 5.6zm0 2.6c.77 0 1.46.28 2 .73L8 11l-2-2.07A3.13 3.13 0 0 1 8 8.2z"/></svg></span>
+          <span class="sb-battery"><i></i></span>
+        </span>
+      </div>
+      <div class="app-header">
+        <div class="cg-side"><div class="cg-icon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><line x1="3" y1="6" x2="21" y2="6"/><line x1="3" y1="12" x2="21" y2="12"/><line x1="3" y1="18" x2="21" y2="18"/></svg></div></div>
+        <div class="cg-title">анонс writer <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><polyline points="6 9 12 15 18 9"/></svg></div>
+        <div class="cg-side right"><div class="cg-icon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 20h9"/><path d="M16.5 3.5a2.12 2.12 0 0 1 3 3L7 19l-4 1 1-4L16.5 3.5z"/></svg></div></div>
+      </div>
+      <div class="cg-chat">
+        <div class="cg-messages" id="cgMessages">
+          <div class="cg-welcome">
+            <div class="cg-welcome-icon">EXP</div>
+            <div class="cg-welcome-title">анонс writer</div>
+            <div class="cg-welcome-desc">Привет, коллега! Я умею писать и редактировать анонсы в стилистике Издания. Присылай бриф в формате текста или файла — я проанализирую его, задам тебе вопросы, а затем пришлю драфт, который можно будет отредактировать в реальном времени. Поехали?</div>
+          </div>
+        </div>
+        <div class="cg-input-area">
+          <div class="cg-input-box">
+            <div class="cg-input-plus"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg></div>
+            <div class="cg-input-text" id="cgInputText">Сообщение</div>
+            <div class="cg-input-icon" id="cgInputMic"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 1a3 3 0 0 0-3 3v8a3 3 0 0 0 6 0V4a3 3 0 0 0-3-3z"/><path d="M19 10v2a7 7 0 0 1-14 0v-2"/><line x1="12" y1="19" x2="12" y2="23"/></svg></div>
+            <div class="cg-input-send" id="cgInputSend" style="display:none"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M12 19V5M5 12l7-7 7 7"/></svg></div>
+          </div>
+        </div>
+        <div class="cg-canvas" id="cgCanvas">
+          <div class="cg-canvas-header">
+            <div class="cg-canvas-hl">
+              <div class="cg-canvas-close"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><polyline points="6 9 12 15 18 9"/></svg></div>
+              <div class="cg-canvas-title">Brand Project Announcement <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><polyline points="6 9 12 15 18 9"/></svg></div>
+            </div>
+            <div class="cg-canvas-hr">
+              <div class="cg-icon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="9" y="9" width="13" height="13" rx="2"/><path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"/></svg></div>
+              <div class="cg-icon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="1"/><circle cx="19" cy="12" r="1"/><circle cx="5" cy="12" r="1"/></svg></div>
+            </div>
+          </div>
+          <div class="cg-canvas-body" id="cgCanvasBody"></div>
+          <div class="cg-floating" id="cgFloating" style="top:62px;left:22px;">
+            <div style="flex:1">Перепиши первую часть заголовка - сделай в виде вопроса</div>
+            <div class="cg-floating-send"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M12 19V5M5 12l7-7 7 7"/></svg></div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Telegram app -->
+    <div class="app telegram-app">
+      <div class="statusbar dark">
+        <span>9:41</span>
+        <span class="right">
+          <span class="sb-signal"><i></i><i></i><i></i><i></i></span>
+          <span class="sb-wifi"><svg viewBox="0 0 16 12"><path d="M8 3c2.2 0 4.2.84 5.72 2.2l-.85.94A6.5 6.5 0 0 0 8 4.3a6.5 6.5 0 0 0-4.87 1.84l-.85-.94A8.46 8.46 0 0 1 8 3zm0 2.6c1.48 0 2.83.55 3.86 1.46l-.85.94A4.8 4.8 0 0 0 8 6.9a4.8 4.8 0 0 0-3.01 1.1l-.85-.94A6.46 6.46 0 0 1 8 5.6zm0 2.6c.77 0 1.46.28 2 .73L8 11l-2-2.07A3.13 3.13 0 0 1 8 8.2z"/></svg></span>
+          <span class="sb-battery"><i></i></span>
+        </span>
+      </div>
+      <div class="tg-header">
+        <div class="tg-back"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><polyline points="15 18 9 12 15 6"/></svg> Chats</div>
+        <div class="tg-title-block">аккаунт менеджер<div class="tg-status" id="tgStatus">last seen just now</div></div>
+        <div class="tg-avatar">АМ</div>
+      </div>
+      <div class="tg-messages" id="tgMessages">
+        <div class="tg-bubble in">Полина, привет! очень нужно на сегодня подготовить анонс для спецпроекта Бренд. Вот лендинг: https://brand.example.com/giveaway/<br><br>В нем надо сделать акцент на том, что еще можно успеть принять участие в розыгрыше<span class="tg-time">11:45</span></div>
+        <div class="tg-bubble out">Привет! А есть бриф?<span class="tg-time">11:45 <span class="tg-check">✓✓</span></span></div>
+        <div class="tg-bubble in">Неа…<span class="tg-time">11:45</span></div>
+      </div>
+      <div class="tg-input-area">
+        <div class="tg-iicon"><svg viewBox="0 0 24 24"><path d="M21.44 11.05l-9.19 9.19a6 6 0 0 1-8.49-8.49l9.19-9.19a4 4 0 0 1 5.66 5.66l-9.2 9.19a2 2 0 0 1-2.83-2.83l8.49-8.48"/></svg></div>
+        <div class="tg-input-field placeholder" id="tgInput">Message</div>
+        <div class="tg-iicon"><svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/></svg></div>
+        <div class="tg-iicon"><svg viewBox="0 0 24 24"><path d="M12 1a3 3 0 0 0-3 3v8a3 3 0 0 0 6 0V4a3 3 0 0 0-3-3z"/><path d="M19 10v2a7 7 0 0 1-14 0v-2"/><line x1="12" y1="19" x2="12" y2="23"/></svg></div>
+      </div>
+    </div>
+
+  </div>
+</div>
+
+<div class="controls">
+  <button id="play">
+    <svg viewBox="0 0 24 24"><polygon points="5 3 19 12 5 21 5 3"/></svg>
+    <span id="playlabel">Воспроизвести</span>
+  </button>
+  <button id="mute">
+    <svg id="muteicon" viewBox="0 0 24 24"><polygon points="11 5 6 9 2 9 2 15 6 15 11 19 11 5"/><path d="M15.54 8.46a5 5 0 0 1 0 7.07"/></svg>
+    <span id="mutelabel">Звук вкл.</span>
+  </button>
+</div>
+
+<div class="hint">Сценарий: бриф в ChatGPT → вопросы → копирование в Telegram → ответ менеджера → копирование обратно в ChatGPT → правка в Canvas. Свайп между приложениями анимируется автоматически.</div>
+
+<script>
+(function(){
+  const cgMessages=document.getElementById('cgMessages');
+  const cgInputText=document.getElementById('cgInputText');
+  const cgInputMic=document.getElementById('cgInputMic');
+  const cgInputSend=document.getElementById('cgInputSend');
+  const cgCanvas=document.getElementById('cgCanvas');
+  const cgCanvasBody=document.getElementById('cgCanvasBody');
+  const cgFloating=document.getElementById('cgFloating');
+  const tgMessages=document.getElementById('tgMessages');
+  const tgInput=document.getElementById('tgInput');
+  const tgStatus=document.getElementById('tgStatus');
+  const appStack=document.getElementById('appStack');
+  const homeIndicator=document.getElementById('homeIndicator');
+  const toast=document.getElementById('toast');
+  const toastText=document.getElementById('toastText');
+  const playBtn=document.getElementById('play');
+  const playLabel=document.getElementById('playlabel');
+  const muteBtn=document.getElementById('mute');
+  const muteIcon=document.getElementById('muteicon');
+  const muteLabel=document.getElementById('mutelabel');
+
+  let actx=null,muted=false,running=false;
+
+  function ctx(){
+    if(!actx) actx=new (window.AudioContext||window.webkitAudioContext)();
+    if(actx.state==='suspended') actx.resume();
+  }
+
+  function keyTap(){
+    if(muted||!actx) return;
+    const t=actx.currentTime;
+    const src=actx.createBufferSource();
+    const sr=actx.sampleRate;
+    const len=Math.floor(sr*0.035);
+    const buf=actx.createBuffer(1,len,sr);
+    const d=buf.getChannelData(0);
+    for(let i=0;i<len;i++) d[i]=(Math.random()*2-1)*(1-i/len);
+    src.buffer=buf;
+    const bp=actx.createBiquadFilter();
+    bp.type='bandpass';
+    bp.frequency.value=2400+Math.random()*1400;
+    bp.Q.value=4;
+    const g=actx.createGain();
+    g.gain.setValueAtTime(0.05,t);
+    g.gain.exponentialRampToValueAtTime(0.001,t+0.035);
+    src.connect(bp);bp.connect(g);g.connect(actx.destination);
+    src.start(t);src.stop(t+0.04);
+  }
+
+  function swoosh(){
+    if(muted||!actx) return;
+    const t=actx.currentTime;
+    const o=actx.createOscillator();
+    const g=actx.createGain();
+    o.type='sine';
+    o.frequency.setValueAtTime(520,t);
+    o.frequency.exponentialRampToValueAtTime(1200,t+0.2);
+    g.gain.setValueAtTime(0.001,t);
+    g.gain.exponentialRampToValueAtTime(0.09,t+0.04);
+    g.gain.exponentialRampToValueAtTime(0.001,t+0.22);
+    o.connect(g);g.connect(actx.destination);
+    o.start(t);o.stop(t+0.24);
+  }
+
+  function pop(){
+    if(muted||!actx) return;
+    const t=actx.currentTime;
+    const o=actx.createOscillator();
+    const g=actx.createGain();
+    o.type='sine';
+    o.frequency.setValueAtTime(720,t);
+    o.frequency.exponentialRampToValueAtTime(420,t+0.14);
+    g.gain.setValueAtTime(0.001,t);
+    g.gain.exponentialRampToValueAtTime(0.085,t+0.02);
+    g.gain.exponentialRampToValueAtTime(0.001,t+0.16);
+    o.connect(g);g.connect(actx.destination);
+    o.start(t);o.stop(t+0.18);
+  }
+
+  function pasteSound(){
+    if(muted||!actx) return;
+    const t=actx.currentTime;
+    const src=actx.createBufferSource();
+    const sr=actx.sampleRate;
+    const len=Math.floor(sr*0.06);
+    const buf=actx.createBuffer(1,len,sr);
+    const d=buf.getChannelData(0);
+    for(let i=0;i<len;i++) d[i]=(Math.random()*2-1)*(1-i/len)*0.6;
+    src.buffer=buf;
+    const bp=actx.createBiquadFilter();
+    bp.type='lowpass';
+    bp.frequency.value=1600;
+    const g=actx.createGain();
+    g.gain.setValueAtTime(0.075,t);
+    g.gain.exponentialRampToValueAtTime(0.001,t+0.06);
+    src.connect(bp);bp.connect(g);g.connect(actx.destination);
+    src.start(t);src.stop(t+0.07);
+  }
+
+  function copySound(){
+    if(muted||!actx) return;
+    const t=actx.currentTime;
+    const o=actx.createOscillator();
+    const g=actx.createGain();
+    o.type='triangle';
+    o.frequency.setValueAtTime(880,t);
+    o.frequency.exponentialRampToValueAtTime(1320,t+0.08);
+    g.gain.setValueAtTime(0.001,t);
+    g.gain.exponentialRampToValueAtTime(0.06,t+0.02);
+    g.gain.exponentialRampToValueAtTime(0.001,t+0.1);
+    o.connect(g);g.connect(actx.destination);
+    o.start(t);o.stop(t+0.12);
+  }
+
+  function panelUp(){
+    if(muted||!actx) return;
+    const t=actx.currentTime;
+    const o=actx.createOscillator();
+    const g=actx.createGain();
+    o.type='sine';
+    o.frequency.setValueAtTime(220,t);
+    o.frequency.linearRampToValueAtTime(580,t+0.32);
+    g.gain.setValueAtTime(0.001,t);
+    g.gain.exponentialRampToValueAtTime(0.06,t+0.06);
+    g.gain.exponentialRampToValueAtTime(0.001,t+0.34);
+    o.connect(g);g.connect(actx.destination);
+    o.start(t);o.stop(t+0.36);
+  }
+
+  function panelDown(){
+    if(muted||!actx) return;
+    const t=actx.currentTime;
+    const o=actx.createOscillator();
+    const g=actx.createGain();
+    o.type='sine';
+    o.frequency.setValueAtTime(580,t);
+    o.frequency.linearRampToValueAtTime(220,t+0.32);
+    g.gain.setValueAtTime(0.001,t);
+    g.gain.exponentialRampToValueAtTime(0.05,t+0.06);
+    g.gain.exponentialRampToValueAtTime(0.001,t+0.34);
+    o.connect(g);g.connect(actx.destination);
+    o.start(t);o.stop(t+0.36);
+  }
+
+  function appSwipe(){
+    if(muted||!actx) return;
+    const t=actx.currentTime;
+    const o=actx.createOscillator();
+    const g=actx.createGain();
+    o.type='sine';
+    o.frequency.setValueAtTime(380,t);
+    o.frequency.exponentialRampToValueAtTime(680,t+0.18);
+    g.gain.setValueAtTime(0.001,t);
+    g.gain.exponentialRampToValueAtTime(0.055,t+0.04);
+    g.gain.exponentialRampToValueAtTime(0.001,t+0.2);
+    o.connect(g);g.connect(actx.destination);
+    o.start(t);o.stop(t+0.22);
+  }
+
+  const wait=ms=>new Promise(r=>setTimeout(r,ms));
+  const cgScroll=()=>{cgMessages.scrollTop=cgMessages.scrollHeight};
+  const tgScroll=()=>{tgMessages.scrollTop=tgMessages.scrollHeight};
+
+  function cgShowSend(){cgInputMic.style.display='none';cgInputSend.style.display='flex'}
+  function cgShowMic(){cgInputMic.style.display='flex';cgInputSend.style.display='none'}
+
+  function cgClearInput(){
+    cgInputText.textContent='Сообщение';
+    cgInputText.classList.remove('filled','cg-input-cursor');
+    cgInputText.style.background='transparent';
+    cgShowMic();
+  }
+  function tgClearInput(){
+    tgInput.textContent='Message';
+    tgInput.classList.add('placeholder');
+    tgInput.classList.remove('tg-input-cursor');
+    tgInput.style.background='transparent';
+  }
+
+  async function cgTypeInput(text){
+    cgInputText.classList.add('filled','cg-input-cursor');
+    cgInputText.textContent='';
+    cgShowSend();
+    for(const ch of text){
+      cgInputText.textContent+=ch;
+      if(ch!==' '&&ch!=='\n') keyTap();
+      await wait(38+Math.random()*55);
+    }
+    await wait(280);
+    cgInputText.classList.remove('cg-input-cursor');
+  }
+
+  async function cgPasteInput(text){
+    cgInputText.classList.add('filled');
+    cgInputText.classList.remove('cg-input-cursor');
+    cgInputText.textContent='';
+    cgShowSend();
+    await wait(350);
+    pasteSound();
+    cgInputText.style.transition='background .25s';
+    cgInputText.style.background='rgba(255,235,130,.55)';
+    cgInputText.textContent=text;
+    await wait(280);
+    cgInputText.style.background='transparent';
+  }
+
+  async function tgPasteInput(text){
+    tgInput.classList.remove('placeholder','tg-input-cursor');
+    tgInput.textContent='';
+    await wait(350);
+    pasteSound();
+    tgInput.style.transition='background .25s';
+    tgInput.style.background='rgba(255,235,130,.45)';
+    tgInput.textContent=text;
+    await wait(280);
+    tgInput.style.background='transparent';
+  }
+
+  function cgAddUser(text){
+    const wrap=document.createElement('div');
+    wrap.className='cg-msg-wrap';
+    wrap.innerHTML='<div class="cg-msg-user"><div class="cg-msg-user-bubble">'+text+'</div></div>';
+    cgMessages.appendChild(wrap);
+    cgScroll();
+  }
+
+  function cgAddTyping(){
+    const wrap=document.createElement('div');
+    wrap.className='cg-msg-wrap';
+    wrap.id='cgAtyping';
+    wrap.innerHTML='<div class="cg-msg-assistant"><div class="cg-typing"><span></span><span></span><span></span></div></div>';
+    cgMessages.appendChild(wrap);
+    cgScroll();
+  }
+  function cgRemoveTyping(){const t=document.getElementById('cgAtyping');if(t) t.remove()}
+
+  function cgAddAssistant(html,id){
+    const wrap=document.createElement('div');
+    wrap.className='cg-msg-wrap';
+    const idAttr=id?(' id="'+id+'"'):'';
+    wrap.innerHTML='<div class="cg-msg-assistant"'+idAttr+'>'+html+'<div class="cg-msg-actions">'
+      +'<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="9" y="9" width="13" height="13" rx="2"/><path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"/></svg>'
+      +'<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M7 10v12M15 5.88L14 10h5.83a2 2 0 0 1 1.92 2.56l-2.33 8A2 2 0 0 1 17.5 22H7"/></svg>'
+      +'<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M17 14V2M9 18.12L10 14H4.17a2 2 0 0 1-1.92-2.56l2.33-8A2 2 0 0 1 6.5 2h11"/></svg>'
+      +'<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="1 4 1 10 7 10"/><path d="M3.51 15a9 9 0 1 0 2.13-9.36L1 10"/></svg>'
+      +'</div></div>';
+    cgMessages.appendChild(wrap);
+    cgScroll();
+  }
+
+  function tgAddBubble(dir,html,time,withChecks,id){
+    const b=document.createElement('div');
+    b.className='tg-bubble '+dir+' appear';
+    if(id) b.id=id;
+    const checks=withChecks?' <span class="tg-check">✓✓</span>':'';
+    b.innerHTML=html+'<span class="tg-time">'+time+checks+'</span>';
+    tgMessages.appendChild(b);
+    tgScroll();
+    return b;
+  }
+  function tgShowTyping(){
+    if(document.getElementById('tgTyping')) return;
+    const b=document.createElement('div');
+    b.className='tg-bubble in';
+    b.id='tgTyping';
+    b.innerHTML='<div class="tg-typing"><span></span><span></span><span></span></div>';
+    tgMessages.appendChild(b);
+    tgStatus.textContent='печатает…';
+    tgScroll();
+  }
+  function tgRemoveTyping(){
+    const t=document.getElementById('tgTyping');if(t) t.remove();
+    tgStatus.textContent='last seen just now';
+  }
+
+  async function switchToTelegram(){
+    homeIndicator.classList.add('swiping');
+    appSwipe();
+    await wait(150);
+    appStack.classList.add('show-telegram');
+    homeIndicator.classList.add('dark');
+    await wait(550);
+    homeIndicator.classList.remove('swiping');
+  }
+  async function switchToChatGPT(){
+    homeIndicator.classList.add('swiping');
+    appSwipe();
+    await wait(150);
+    appStack.classList.remove('show-telegram');
+    homeIndicator.classList.remove('dark');
+    await wait(550);
+    homeIndicator.classList.remove('swiping');
+  }
+
+  async function showToast(text){
+    toastText.textContent=text||'Скопировано';
+    toast.classList.add('show');
+    copySound();
+    await wait(1100);
+    toast.classList.remove('show');
+    await wait(200);
+  }
+
+  function cgRenderCanvas(firstLine){
+    cgCanvasBody.innerHTML=
+      '<div class="cg-canvas-h1" id="cgCanvasH1">'+firstLine+'</div>'+
+      '<div class="cg-canvas-p"><span class="cg-snip">Сниппет:</span> У вас еще есть время принять участие в розыгрыше подарков от Бренд и заодно узнать, какой питомец и порода подходят вам идеально.</div>'+
+      '<div class="cg-canvas-p">У всех нас разный образ жизни и привычки: одни просыпаются с рассветом и не сидят на месте, другие любят размеренные вечера дома, а третьи постоянно в разъездах. Спецпроект Бренд и Издание помогает понять, какой питомец и какая порода впишутся в вашу жизнь лучше всего — через короткий интерактивный тест. А еще — поучаствовать в розыгрыше подарков для будущих хозяев и их пушистых друзей.</div>'+
+      '<div class="cg-canvas-p">На сайте проекта можно пройти тест и получить персональную карточку: описание подходящей породы, рекомендации по уходу и подборку корма с учетом размера, активности и особенностей питомца. Но главное — успеть принять участие в розыгрыше призов: акция продлится до 30 числа.</div>'+
+      '<div class="cg-canvas-p">Чтобы присоединиться, переходите на страницу спецпроекта, проходите тест и следуйте условиям акции. Чем раньше зарегистрируетесь, тем больше шансов побороться за подарки от Бренд.</div>'+
+      '<div class="cg-canvas-p">Заодно можно проверить, насколько точно сервис попадает в характер и образ жизни: возможно, в результатах теста вы узнаете себя — и поймете, какая порода действительно подходит вам идеально.</div>';
+  }
+
+  function resetAll(){
+    document.querySelectorAll('.cg-msg-wrap').forEach(el=>el.remove());
+    cgClearInput();
+    cgCanvas.classList.remove('open');
+    cgCanvasBody.innerHTML='';
+    cgFloating.classList.remove('show');
+    cgMessages.scrollTop=0;
+    appStack.classList.remove('show-telegram');
+    homeIndicator.classList.remove('dark','swiping');
+    toast.classList.remove('show');
+    tgClearInput();
+    document.querySelectorAll('.tg-bubble.added').forEach(el=>el.remove());
+    document.querySelectorAll('.tg-bubble').forEach(el=>el.classList.remove('selected'));
+    tgStatus.textContent='last seen just now';
+  }
+
+  const QUESTIONS_TEXT='1. До какого числа идет розыгрыш или спецпроект?\n2. Какие именно подарки/призы сейчас в фокусе коммуникации?\n3. Нужно ли упоминать механику участия (например, пройти тест/зарегистрироваться/купить корм)? Если да — кратко опишите.\n4. Есть ли дедлайн или формулировка про «осталось совсем мало времени»?\n5. Нужно ли делать акцент именно на интерактивном тесте/подборе питомца или это второстепенная часть?\n6. Нужен ли упор на конкретный бренд/партнеров кроме Бренд и Издание?\n7. Нужна ли ссылка/CTA в тексте или достаточно нативного упоминания проекта?';
+  const QUESTIONS_HTML='1. До какого числа идет розыгрыш или спецпроект?<br>2. Какие именно подарки/призы сейчас в фокусе коммуникации?<br>3. Нужно ли упоминать механику участия (например, пройти тест/зарегистрироваться/купить корм)? Если да — кратко опишите.<br>4. Есть ли дедлайн или формулировка про «осталось совсем мало времени»?<br>5. Нужно ли делать акцент именно на интерактивном тесте/подборе питомца или это второстепенная часть?<br>6. Нужен ли упор на конкретный бренд/партнеров кроме Бренд и Издание?<br>7. Нужна ли ссылка/CTA в тексте или достаточно нативного упоминания проекта?';
+  const ANSWERS_TEXT='1 — до 30 числа\n2 — подарочные наборы для питомцев\n3 — без механики\n4 — да, добавь про дедлайн\n5 — второстепенно\n6 — нет\n7 — нативно, без CTA';
+  const ANSWERS_HTML='1 — до 30 числа<br>2 — подарочные наборы для питомцев<br>3 — без механики<br>4 — да, добавь про дедлайн<br>5 — второстепенно<br>6 — нет<br>7 — нативно, без CTA';
+
+  async function run(){
+    if(running) return;
+    running=true;
+    playBtn.disabled=true;
+    ctx();
+    resetAll();
+
+    await wait(500);
+
+    // === PHASE 1: paste brief in ChatGPT ===
+    await cgPasteInput('Полина, привет! очень нужно на сегодня подготовить анонс для спецпроекта Бренд 🙏\n\nВ нем надо сделать акцент на подарки https://brand.example.com/giveaway/\nИ на то, что вы еще можете успеть принять участие в розыгрыше, поэтому нужно поторопиться. А заодно и подобрать себе идеального питомца)');
+    await wait(700);
+    swoosh();
+    cgAddUser('Полина, привет! очень нужно на сегодня подготовить анонс для спецпроекта Бренд 🙏<br><br>В нем надо сделать акцент на подарки https://brand.example.com/giveaway/<br>И на то, что вы еще можете успеть принять участие в розыгрыше, поэтому нужно поторопиться. А заодно и подобрать себе идеального питомца)');
+    cgClearInput();
+
+    await wait(700);
+    cgAddTyping();
+    await wait(1500);
+    cgRemoveTyping();
+    pop();
+    cgAddAssistant(
+      '<p>MODE_A active — collecting fields.</p>'+
+      '<ol>'+
+      '<li>До какого числа идет розыгрыш или спецпроект?</li>'+
+      '<li>Какие именно подарки/призы сейчас в фокусе коммуникации?</li>'+
+      '<li>Нужно ли упоминать механику участия (например, пройти тест/зарегистрироваться/купить корм)? Если да — кратко опишите.</li>'+
+      '<li>Есть ли дедлайн или формулировка про «осталось совсем мало времени»?</li>'+
+      '<li>Нужно ли делать акцент именно на интерактивном тесте/подборе питомца или это второстепенная часть?</li>'+
+      '<li>Нужен ли упор на конкретный бренд/партнеров кроме Бренд и Издание?</li>'+
+      '<li>Нужна ли ссылка/CTA в тексте или достаточно нативного упоминания проекта?</li>'+
+      '</ol>',
+      'cgModeA'
+    );
+
+    await wait(2000);
+
+    // === PHASE 2: select & copy questions ===
+    const modeAEl=document.getElementById('cgModeA');
+    modeAEl.classList.add('selected');
+    await wait(700);
+    await showToast('Скопировано');
+    modeAEl.classList.remove('selected');
+
+    await wait(400);
+
+    // === PHASE 3: switch to Telegram ===
+    await switchToTelegram();
+    await wait(700);
+    tgScroll();
+
+    // === PHASE 4: paste questions in Telegram ===
+    await tgPasteInput(QUESTIONS_TEXT);
+    await wait(700);
+    swoosh();
+    tgAddBubble('out',QUESTIONS_HTML,'11:48',true).classList.add('added');
+    tgClearInput();
+
+    await wait(1200);
+    tgShowTyping();
+    await wait(1500);
+    tgRemoveTyping();
+    pop();
+    tgAddBubble('in','Секундочку, сейчас уточню у партнера','11:48',false).classList.add('added');
+
+    await wait(2400);
+    tgShowTyping();
+    await wait(2300);
+    tgRemoveTyping();
+    pop();
+    const answersBubble=tgAddBubble('in',ANSWERS_HTML,'11:52',false,'tgAnswers');
+    answersBubble.classList.add('added');
+
+    await wait(1700);
+
+    // === PHASE 5: select & copy answers ===
+    answersBubble.classList.add('selected');
+    await wait(700);
+    await showToast('Скопировано');
+    answersBubble.classList.remove('selected');
+
+    await wait(400);
+
+    // === PHASE 6: back to ChatGPT ===
+    await switchToChatGPT();
+    await wait(600);
+    cgScroll();
+
+    // === PHASE 7: paste answers, MODE_B, Поправь, canvas ===
+    await cgPasteInput(ANSWERS_TEXT);
+    await wait(700);
+    swoosh();
+    cgAddUser(ANSWERS_HTML);
+    cgClearInput();
+
+    await wait(800);
+    cgAddTyping();
+    await wait(1800);
+    cgRemoveTyping();
+    pop();
+    cgAddAssistant(
+      '<p>MODE_B active.</p>'+
+      '<p>Найдите идеальную породу собак в новом тесте от Бренда / Розыгрыш призов уже идет</p>'+
+      '<p><strong>Сниппет:</strong> У вас еще есть время принять участие в розыгрыше подарков от Бренд и заодно узнать, какой питомец и порода подходят вам идеально.</p>'+
+      '<p>У всех нас разный образ жизни и привычки: одни просыпаются с рассветом и не сидят на месте, другие любят размеренные вечера дома, а третьи постоянно в разъездах. Спецпроект Бренд и Издание помогает понять, какой питомец и какая порода впишутся в вашу жизнь лучше всего — через короткий интерактивный тест. А еще — поучаствовать в розыгрыше подарков для будущих хозяев и их пушистых друзей.</p>'+
+      '<p>На сайте проекта можно пройти тест и получить персональную карточку: описание подходящей породы, рекомендации по уходу и подборку корма с учетом размера, активности и особенностей питомца. Но главное — успеть принять участие в розыгрыше призов: акция продлится до 30 числа.</p>'+
+      '<p>Чтобы присоединиться, переходите на страницу спецпроекта, проходите тест и следуйте условиям акции. Чем раньше зарегистрируетесь, тем больше шансов побороться за подарки от Бренд.</p>'
+    );
+
+    await wait(2400);
+
+    await cgTypeInput('Поправь');
+    swoosh();
+    cgAddUser('Поправь');
+    cgClearInput();
+
+    await wait(700);
+
+    cgRenderCanvas('Найдите идеальную породу собак в новом тесте от Бренда / Розыгрыш призов уже идет');
+    panelUp();
+    cgCanvas.classList.add('open');
+    await wait(500);
+    await wait(900);
+
+    const h1=document.getElementById('cgCanvasH1');
+    h1.classList.add('highlight');
+    await wait(400);
+    cgFloating.classList.add('show');
+    await wait(2200);
+
+    swoosh();
+    cgFloating.classList.remove('show');
+    h1.classList.remove('highlight');
+
+    await wait(800);
+
+    pop();
+    h1.style.opacity='0';
+    await wait(260);
+    h1.textContent='Какая порода собак вам подходит / Узнайте в новом тесте от Бренда и выиграйте призы';
+    h1.style.opacity='1';
+
+    cgAddAssistant('<p>Отредактировал Brand Special Project Announcement.</p><p>MODE_C active — заголовок обновлен в Canvas.</p>');
+
+    await wait(1800);
+
+    panelDown();
+    cgCanvas.classList.remove('open');
+    await wait(500);
+    cgScroll();
+
+    running=false;
+    playBtn.disabled=false;
+    playLabel.textContent='Повторить';
+  }
+
+  playBtn.addEventListener('click',run);
+
+  // Auto-play + loop for embedded showcase (the play button sits below the
+  // phone and is cropped out when embedded, so kick playback off automatically).
+  (function autoLoop(){
+    function cycle(){ run().then(function(){ setTimeout(cycle, 2800); }); }
+    setTimeout(cycle, 800);
+  })();
+
+  muteBtn.addEventListener('click',function(){
+    muted=!muted;
+    if(muted){
+      muteIcon.innerHTML='<line x1="1" y1="1" x2="23" y2="23"/><polygon points="11 5 6 9 2 9 2 15 6 15 11 19 11 5"/><path d="M17.04 17.05a5 5 0 0 1-7.05 0"/>';
+      muteLabel.textContent='Звук выкл.';
+    }else{
+      muteIcon.innerHTML='<polygon points="11 5 6 9 2 9 2 15 6 15 11 19 11 5"/><path d="M15.54 8.46a5 5 0 0 1 0 7.07"/>';
+      muteLabel.textContent='Звук вкл.';
+    }
+  });
+})();
+</script>
+
+</body>
+</html>

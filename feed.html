@@ -1,0 +1,118 @@
+/* ============================================================
+   embed.js — mounts live prototype iframes, scaled to fit,
+   with their review-board chrome stripped so only the product shows.
+   Same-origin, so we inject cleanup CSS into each iframe on load.
+
+   Usage:
+   <div class="embed" data-src="proto/x.html"
+        data-vw="900" data-vh="1100"
+        data-preset="article|wine|dark|web"
+        data-mode="contain|cover"></div>
+   ============================================================ */
+(function () {
+  // CSS injected into the iframe, per prototype family
+  const PRESETS = {
+    // editorial article / feed mockups: kill the review header, isolate phone
+    article: `
+      html,body{background:#e9ebef !important;}
+      body{padding:0 !important;margin:0 !important;min-height:0 !important;}
+      .board-header{display:none !important;}
+      .canvas{min-height:0 !important;padding:14px 0 !important;margin:0 auto !important;}
+    `,
+    // 3D wine kiosk — raw component, just neutralise body chrome
+    wine: `
+      html,body{margin:0 !important;padding:0 !important;background:#13081c !important;}
+      .wmd{margin:0 auto !important;}
+    `,
+    // dark phone scenes (telegram / mobile chat) — drop the dark body fill so
+    // the host stage colour shows around the phone instead of a black margin
+    dark: `
+      html,body{margin:0 !important;padding:0 !important;background:transparent !important;}
+    `,
+    // full web product (studio brief) — leave as-is
+    web: `
+      html,body{margin:0 !important;}
+    `,
+    none: ``
+  };
+
+  function mount(el) {
+    const src = el.dataset.src;
+    const vw = parseFloat(el.dataset.vw) || 900;
+    const vh = parseFloat(el.dataset.vh) || 1000;
+    const preset = el.dataset.preset || 'none';
+    const mode = el.dataset.mode || 'contain';
+    const interactive = el.dataset.interactive === 'true';
+    // scroll mode: fit to WIDTH and let the prototype scroll inside its frame.
+    // Use for tall interactive products (multi-step forms) that must not be clipped.
+    const scrollMode = el.dataset.scroll === 'true';
+
+    const iframe = document.createElement('iframe');
+    iframe.setAttribute('scrolling', scrollMode ? 'auto' : 'no');
+    iframe.style.cssText =
+      `width:${vw}px;height:${vh}px;border:0;position:absolute;top:0;left:0;` +
+      `transform-origin:top left;background:transparent;` +
+      (interactive ? '' : 'pointer-events:none;');
+    el.appendChild(iframe);
+
+    function fit() {
+      const W = el.clientWidth;
+      if (scrollMode) {
+        const scale = W / vw;
+        const innerH = el.clientHeight ? el.clientHeight / scale : vh;
+        iframe.style.width = vw + 'px';
+        iframe.style.height = innerH + 'px';
+        iframe.style.transform = `scale(${scale})`;
+        if (!el.style.height && !el.clientHeight) el.style.height = (vh * scale) + 'px';
+        return;
+      }
+      const H = el.clientHeight || (W * vh / vw);
+      let scale;
+      if (mode === 'cover') scale = Math.max(W / vw, H / vh);
+      else scale = el.clientHeight ? Math.min(W / vw, H / vh) : W / vw;
+      const sw = vw * scale, sh = vh * scale;
+      // horizontal: always centre
+      const tx = (W - sw) / 2;
+      // vertical: cover anchors to top (content lives up top in these prototypes);
+      // contain centres within the box.
+      const anchor = el.dataset.anchor || (mode === 'cover' ? 'top' : 'center');
+      let ty;
+      if (!el.clientHeight) ty = 0;
+      else if (anchor === 'top') ty = 0;
+      else ty = (el.clientHeight - sh) / 2;
+      iframe.style.transform = `translate(${tx}px,${ty}px) scale(${scale})`;
+      if (!el.style.height && !el.clientHeight) el.style.height = sh + 'px';
+    }
+
+    iframe.addEventListener('load', function () {
+      try {
+        const doc = iframe.contentDocument;
+        if (doc && PRESETS[preset]) {
+          const st = doc.createElement('style');
+          st.textContent = PRESETS[preset];
+          doc.head.appendChild(st);
+        }
+      } catch (e) { /* cross-origin guard, shouldn't happen */ }
+      fit();
+    });
+
+    iframe.src = src;
+    requestAnimationFrame(fit);
+    window.addEventListener('resize', fit);
+    // re-fit a few times as fonts/anim settle
+    [120, 400, 900].forEach(t => setTimeout(fit, t));
+  }
+
+  function init() {
+    document.querySelectorAll('.embed:not([data-mounted])').forEach(el => {
+      el.setAttribute('data-mounted', '1');
+      mount(el);
+    });
+  }
+
+  if (document.readyState === 'loading')
+    document.addEventListener('DOMContentLoaded', init);
+  else init();
+
+  window.__mountEmbeds = init;
+})();

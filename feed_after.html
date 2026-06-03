@@ -1,0 +1,481 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Полина Сентебова — менеджер продукта · CUI / CUX-дизайнер</title>
+<link rel="stylesheet" href="styles.css">
+<style>
+  .section{ padding:64px 0; }
+  .section-head{ display:flex; align-items:flex-end; justify-content:space-between; gap:24px; margin-bottom:34px; flex-wrap:wrap; }
+
+  /* ---- HERO / BIO ---- */
+  .hero{ padding-top:34px; }
+  .hero-grid{ display:grid; grid-template-columns:1fr; grid-template-rows:auto auto; gap:18px; }
+  .hero-intro{
+    grid-column:1 / 2; grid-row:1 / 2;
+    background:var(--panel); border-radius:var(--r-xl); padding:46px 46px 40px;
+    box-shadow:var(--sh);
+    display:grid; grid-template-columns:1fr 400px; grid-template-rows:auto 1fr;
+    column-gap:24px; align-items:start;
+    position:relative; overflow:visible; min-height:430px;
+  }
+  .hero-intro > div:nth-child(1){ grid-column:1; grid-row:1; }
+  .hero-intro > div:nth-child(2){ grid-column:1; grid-row:2; align-self:end; }
+  .hero-card{ grid-column:2; grid-row:1 / 3; align-self:center; position:relative; height:640px; margin:-20px -28px 0 0; overflow:visible; }
+  .hero-card .id-card-embed{ position:absolute; top:0; left:0; right:0; width:100%; height:640px; border:0; display:block; background:transparent; transform:scale(1.55); transform-origin:center center; pointer-events:none; }
+  .hi-row{ display:flex; align-items:center; gap:14px; }
+  .status{ display:inline-flex; align-items:center; gap:9px; font-size:14px; font-weight:600; color:var(--ink-2); }
+  .status .pulse{ width:9px;height:9px;border-radius:50%; background:oklch(0.74 0.17 150);
+    box-shadow:0 0 0 0 oklch(0.74 0.17 150 / .6); animation:ping 2.4s var(--ease) infinite; }
+  @keyframes ping{ 0%{ box-shadow:0 0 0 0 oklch(0.74 0.17 150 /.55);} 70%{ box-shadow:0 0 0 12px oklch(0.74 0.17 150 /0);} 100%{ box-shadow:0 0 0 0 oklch(0.74 0.17 150/0);} }
+  .hero-intro .display{ margin-top:18px; }
+  .hero-intro .sub{ max-width:34ch; color:var(--ink-2); font-size:19px; margin-top:20px; }
+  .hero-cta-row{ display:flex; gap:12px; align-items:center; margin-top:30px; flex-wrap:wrap; }
+  .deco-orb-1{ width:138px; height:138px; right:-44px; top:-52px; }
+
+  .hero-avatar{
+    grid-column:2 / 3; grid-row:1 / 3;
+    position:relative; min-height:560px;
+  }
+  .id-card-embed{ position:absolute; inset:0; width:100%; height:100%; border:0; display:block; background:transparent; }
+
+  .hero-stats{ grid-column:1 / 2; grid-row:2 / 3; display:grid; grid-template-columns:repeat(3,1fr); gap:18px; }
+  .stat{ background:var(--panel); border-radius:var(--r); padding:22px 22px 18px; box-shadow:var(--sh);
+    display:flex; flex-direction:column; justify-content:space-between; min-height:150px; position:relative; overflow:hidden; }
+  .stat.blue{ background:var(--blue); color:#fff; }
+  .stat.mint{ background:var(--mint); color:#2b2620; }
+  .stat .big{ font-family:var(--display); font-weight:600; font-size:46px; letter-spacing:-.04em; line-height:1; }
+  .stat .lbl{ font-size:13.5px; opacity:.85; margin-top:8px; }
+  .stat .topkey{ font-size:12px; font-weight:600; letter-spacing:.12em; text-transform:uppercase; opacity:.6; }
+
+  @media(max-width:920px){
+    .hero-grid{ grid-template-columns:1fr; }
+    .hero-intro,.hero-stats{ grid-column:1; }
+    .hero-intro{ grid-template-columns:1fr; grid-template-rows:auto auto auto; }
+    .hero-card{ grid-column:1; grid-row:auto; height:480px; margin:8px 0 0; }
+    .hero-card .id-card-embed{ height:480px; transform:scale(1.3); }
+    .hero-stats{ grid-row:auto; }
+  }
+  @media(max-width:560px){ .hero-stats{ grid-template-columns:1fr; } .hero-intro{ padding:34px 26px; } }
+
+  /* ---- WORKS / GALLERY ---- */
+  .gallery{ display:grid; grid-template-columns:repeat(2,1fr); gap:18px; }
+  .case-card{
+    position:relative; border-radius:var(--r-lg); overflow:hidden; background:var(--panel);
+    box-shadow:var(--sh); display:flex; flex-direction:column;
+    transition:transform .45s var(--ease), box-shadow .45s var(--ease); cursor:pointer; text-decoration:none;
+  }
+  .case-card:hover{ transform:translateY(-6px); box-shadow:var(--sh-lg); }
+  .cc-preview{ position:relative; height:310px; overflow:hidden; }
+  .cc-preview .embed{ position:absolute; inset:0; }
+  .cc-badges{ position:absolute; left:18px; top:18px; right:18px; z-index:5;
+    display:flex; justify-content:space-between; align-items:flex-start; gap:10px; pointer-events:none; }
+  .cc-num{ font-family:var(--display); font-size:14px; font-weight:600; color:#fff;
+    background:rgba(15,15,20,.5); backdrop-filter:blur(6px); padding:6px 12px; border-radius:var(--r-pill); }
+  .cc-foot{ padding:22px 26px 26px; display:flex; flex-direction:column; gap:8px; }
+  .cc-meta{ display:flex; gap:8px; flex-wrap:wrap; margin-bottom:4px; }
+  .cc-foot h3{ font-size:29px; letter-spacing:-.035em; display:flex; align-items:center; gap:10px; }
+  .cc-foot .arr{ margin-left:auto; width:40px; height:40px; border-radius:50%; display:grid; place-items:center;
+    background:var(--panel-2); color:var(--ink); transition:.3s var(--ease); font-size:18px; }
+  .case-card:hover .cc-foot .arr{ background:var(--blue); color:#fff; transform:rotate(-45deg); }
+  .cc-foot .desc{ color:var(--ink-2); max-width:42ch; font-size:15.5px; }
+  .cc-preview.dark{ background:#13081c; }
+  .cc-preview.wine{ background:linear-gradient(165deg,#d18098 0%,#b5688a 40%,#8a4060 100%); }
+  .cc-preview.paper{ background:#e9ebef; }
+  .cc-preview.cream{ background:#efece8; }
+  @media(max-width:760px){ .gallery{ grid-template-columns:1fr; } }
+
+  /* ---- CONTACT ---- */
+  .contact-panel{
+    background:#b00d0d; color:#fff; border-radius:var(--r-xl); padding:70px 56px;
+    position:relative; overflow:hidden; box-shadow:var(--sh-blue);
+  }
+  /* flowing animated red gradient field */
+  .cbg{ position:absolute; inset:-30%; z-index:0; pointer-events:none; filter:blur(46px) saturate(1.05); }
+  .cblob{ position:absolute; width:60%; height:78%; border-radius:50%; mix-blend-mode:normal; opacity:.95; will-change:transform; }
+  .cblob.b1{ background:radial-gradient(circle at 50% 50%, #f02a2a 0%, rgba(240,42,42,0) 66%); left:-6%; top:-12%; animation:cdrift1 17s ease-in-out infinite; }
+  .cblob.b2{ background:radial-gradient(circle at 50% 50%, #7a0606 0%, rgba(122,6,6,0) 66%); right:-10%; top:6%;  animation:cdrift2 21s ease-in-out infinite; }
+  .cblob.b3{ background:radial-gradient(circle at 50% 50%, #ff4a3d 0%, rgba(255,74,61,0) 64%); left:24%; bottom:-22%; animation:cdrift3 19s ease-in-out infinite; }
+  .cblob.b4{ background:radial-gradient(circle at 50% 50%, #5a0303 0%, rgba(90,3,3,0) 68%); right:14%; bottom:-16%; animation:cdrift4 24s ease-in-out infinite; }
+  @keyframes cdrift1{ 0%,100%{ transform:translate(0,0) scale(1);} 33%{ transform:translate(34%,18%) scale(1.18);} 66%{ transform:translate(12%,32%) scale(.92);} }
+  @keyframes cdrift2{ 0%,100%{ transform:translate(0,0) scale(1.05);} 33%{ transform:translate(-26%,22%) scale(.9);} 66%{ transform:translate(-14%,-10%) scale(1.2);} }
+  @keyframes cdrift3{ 0%,100%{ transform:translate(0,0) scale(1);} 33%{ transform:translate(-20%,-26%) scale(1.15);} 66%{ transform:translate(22%,-12%) scale(.95);} }
+  @keyframes cdrift4{ 0%,100%{ transform:translate(0,0) scale(1.1);} 33%{ transform:translate(18%,-20%) scale(.92);} 66%{ transform:translate(-22%,-28%) scale(1.18);} }
+  .contact-panel::before{
+    content:""; position:absolute; inset:0; z-index:1; pointer-events:none;
+    background:linear-gradient(158deg, rgba(120,3,3,.45) 0%, rgba(120,3,3,0) 45%, rgba(90,2,2,.5) 100%);
+  }
+  @media(prefers-reduced-motion:reduce){ .cblob{ animation:none !important; } }
+  .contact-grid{ display:flex; justify-content:space-between; align-items:flex-end; gap:30px; flex-wrap:wrap; position:relative; z-index:3; }
+  .contact-panel > .eyebrow, .contact-panel > h2{ position:relative; z-index:3; }
+  .contact-links{ display:flex; flex-direction:column; gap:12px; }
+  .clink{ display:flex; align-items:center; gap:14px; padding:14px 18px; border-radius:var(--r);
+    background:rgba(255,255,255,.06); border:1px solid rgba(255,255,255,.1); transition:.3s var(--ease); min-width:280px; }
+  .clink:hover{ background:rgba(255,255,255,.12); transform:translateX(4px); }
+  .clink .k{ font-size:12.5px; letter-spacing:.1em; text-transform:uppercase; opacity:.55; }
+  .clink .v{ font-size:17px; font-weight:600; }
+  .clink .ci{ margin-left:auto; opacity:.6; }
+  .contact-orb{ width:320px; height:320px; right:-90px; top:-90px; z-index:1; }
+  .contact-orb-2{ width:140px;height:140px; right:200px; bottom:-50px; z-index:1; }
+  .email-big{ font-family:var(--display); font-size:clamp(26px,3.4vw,46px); letter-spacing:-.04em;
+    color:#fff; display:inline-flex; align-items:center; gap:16px; }
+  .email-big .uline{ display:block; height:2px; background:var(--mint); width:0; transition:width .4s var(--ease); }
+  .email-big:hover .uline{ width:40px; }
+  @media(max-width:700px){ .contact-panel{ padding:46px 26px; } }
+
+  /* ---- STRENGTHS (animated red frame) ---- */
+  .strengths{ padding-top:18px; }
+  .strength-layout{ display:grid; grid-template-columns:1fr 430px; gap:54px; align-items:center; }
+  .strength-copy h2{ margin-top:12px; }
+  .strength-stage{ position:relative; width:100%; max-width:430px; justify-self:center; }
+  .strength-img{ width:100%; height:auto; display:block; border-radius:var(--r-lg); }
+  .strength-frame{
+    position:absolute; width:47%; height:46%; left:1.5%; top:1%;
+    pointer-events:none; z-index:3;
+    animation:strengthFrameMove 9.5s cubic-bezier(.72,0,.18,1) infinite;
+    will-change:left,top;
+  }
+  .strength-frame svg{
+    width:100%; height:100%; display:block; overflow:visible;
+    filter:drop-shadow(0 5px 12px rgba(225,20,20,.20));
+    animation:strengthFrameBreath 2.3s ease-in-out infinite;
+  }
+  @keyframes strengthFrameMove{
+    0%,18%   { left:1.5%;  top:1%;  }
+    25%,43%  { left:51.5%; top:1%;  }
+    50%,68%  { left:51.5%; top:51%; }
+    75%,93%  { left:1.5%;  top:51%; }
+    100%     { left:1.5%;  top:1%;  }
+  }
+  @keyframes strengthFrameBreath{ 0%,100%{ transform:scale(1);} 50%{ transform:scale(1.02);} }
+  @media(max-width:860px){
+    .strength-layout{ grid-template-columns:1fr; gap:30px; }
+    .strength-stage{ max-width:380px; }
+  }
+  @media(prefers-reduced-motion:reduce){
+    .strength-frame{ animation:none; left:51.5%; top:1%; }
+    .strength-frame svg{ animation:none; }
+  }
+
+  /* ---- case-card static image previews ---- */
+  .cc-img{ position:absolute; inset:0; width:100%; height:100%; object-fit:cover; object-position:center; display:block; }
+
+  /* =======================================================
+     CHOREOGRAPHED SCROLL TRANSITIONS
+     soft "rise out of focus" + directional + cascade
+     ======================================================= */
+  [data-reveal]{
+    opacity:0;
+    transform:translateY(38px) scale(.984);
+    filter:blur(9px);
+    will-change:opacity, transform, filter;
+  }
+  .revealed[data-reveal]{
+    opacity:1; transform:none; filter:blur(0);
+    transition:
+      opacity     .9s var(--ease),
+      transform  1.05s var(--ease),
+      filter      .8s var(--ease);
+    transition-delay:var(--rd, 0s);
+  }
+  /* directional variants — paired entrances */
+  [data-reveal="left"]  { transform:translateX(-46px) translateY(10px) scale(.99); }
+  [data-reveal="right"] { transform:translateX( 46px) translateY(10px) scale(.99); }
+  .revealed[data-reveal="left"], .revealed[data-reveal="right"]{ transform:none; }
+
+  /* ---- cascade: суперсилы влетают по очереди ---- */
+  .hero-stats .stat{ opacity:0; transform:translateY(26px) scale(.965); filter:blur(7px); }
+  .hero-stats.revealed .stat{
+    opacity:1; transform:none; filter:blur(0);
+    transition:opacity .7s var(--ease), transform .85s var(--ease), filter .7s var(--ease);
+  }
+  .hero-stats.revealed .stat:nth-child(1){ transition-delay:.06s; }
+  .hero-stats.revealed .stat:nth-child(2){ transition-delay:.17s; }
+  .hero-stats.revealed .stat:nth-child(3){ transition-delay:.28s; }
+
+  /* ---- floating-nav: sliding active indicator ---- */
+  .nav-links{ position:relative; }
+  .nav-pill{
+    position:absolute; left:0; top:50%; height:36px; transform:translateY(-50%);
+    border-radius:var(--r-pill); background:var(--panel-2);
+    box-shadow:inset 0 0 0 1px rgba(20,20,26,.04);
+    opacity:0; pointer-events:none; z-index:0;
+    transition:transform .5s var(--ease), width .5s var(--ease), opacity .35s var(--ease);
+  }
+  .nav-links a{ position:relative; z-index:1; transition:color .3s var(--ease), background .25s var(--ease); }
+  .nav-links a.active{ color:var(--ink); }
+  .nav-links a.active:hover{ background:transparent; }
+
+  /* ---- wine reading-progress line ---- */
+  .scroll-prog{
+    position:fixed; top:0; left:0; height:3px; width:0%;
+    background:linear-gradient(90deg, var(--blue-ink), var(--blue) 60%, var(--blue-2));
+    z-index:80; border-radius:0 3px 3px 0;
+    box-shadow:0 0 14px rgba(166,30,45,.5);
+    transition:width .12s linear;
+  }
+
+  @media(prefers-reduced-motion:reduce){
+    [data-reveal]{ opacity:1 !important; transform:none !important; filter:none !important; }
+    .hero-stats .stat{ opacity:1 !important; transform:none !important; filter:none !important; }
+    .nav-pill, .scroll-prog{ transition:none; }
+  }
+</style>
+</head>
+<body>
+
+<div class="scroll-prog" aria-hidden="true"></div>
+
+<nav class="nav">
+  <div class="nav-inner">
+    <a href="index.html" class="brand"><span class="dot"></span>Полина</a>
+    <div class="nav-links">
+      <span class="nav-pill" aria-hidden="true"></span>
+      <a href="#bio">О себе</a>
+      <a href="#work">Кейсы</a>
+      <a href="#contact">Контакты</a>
+    </div>
+    <a href="#contact" class="nav-cta">Связаться →</a>
+  </div>
+</nav>
+
+<main class="wrap">
+
+  <!-- ============ BIO / HERO ============ -->
+  <header class="hero section" id="bio" data-screen-label="Bio">
+    <div class="hero-grid">
+
+      <div class="hero-intro" data-reveal>
+        <div>
+          <div class="hi-row">
+            <span class="status"><span class="pulse"></span>Открыта к сотрудничеству· 2026</span>
+          </div>
+          <h1 class="display">Я — Полина:<br><span style="color:var(--blue)">менеджер продукта и CUI/CUIX—дизайнер</span></h1>
+        </div>
+        <div>
+          <p class="sub">Верю, что новые технологии меняют нашу жизнь к лучшему и хочу, чтобы они были доступны каждому. Поэтому создаю B2C- и B2B- продукты,  которые помогают решать задачи с помощью AI.   Меня очень вдохновляет, как сейчас развиваются русскоязычные LLM, и хочу быть частью этого процесса.</p>
+          <div class="hero-cta-row">
+            <a href="#work" class="btn btn-dark">Смотреть кейсы</a>
+            <a href="#contact" class="btn btn-ghost">Связаться</a>
+          </div>
+        </div>
+        <div class="hero-card">
+          <iframe class="id-card-embed" data-src="proto/id-card-v2.html" title="Полина Сентебова — ID Card" scrolling="no"></iframe>
+        </div>
+      </div>
+
+      <div class="hero-stats" data-reveal>
+        <div class="stat">
+          <span class="topkey">Суперсила 01</span>
+          <div><div class="big" style="font-size:27px;line-height:1.05">Слышу и понимаю<br>аудиторию</div><div class="lbl">Опыт редактора в крупном лайфстайл-медиа и e-com — умею проектировать пользовательскую реакцию.</div></div>
+        </div>
+        <div class="stat blue">
+          <span class="topkey">Суперсила 02</span>
+          <div><div class="big" style="font-size:27px;line-height:1.05">Баланс<br>B2B ↔ B2C</div><div class="lbl">В Х5 работала на стыке B2B и B2C в партнерском направлении, где развивала продукты для пользователей от внутренних партнеров</div></div>
+        </div>
+        <div class="stat mint">
+          <span class="topkey">Суперсила 03</span>
+          <div><div class="big" style="font-size: 27px; line-height: 1.05">Я — инноватор</div><div class="lbl">проблема → новый процесс или продукт</div></div>
+        </div>
+      </div>
+
+    </div>
+  </header>
+
+  <!-- ============ STRENGTHS ============ -->
+  <section class="section strengths" id="strengths" data-screen-label="Strengths">
+    <div class="strength-layout">
+      <div class="strength-copy" data-reveal="left">
+        <div class="eyebrow">Сильные стороны — кратко</div>
+        <h2 class="h2">Четыре грани—<br>одна рабочая суперсила.</h2>
+        <p class="lead muted" style="max-width:35ch;margin-top:18px;">В работе я стараюсь раскрывать свой творческий потенциал на максимум. Постаралась визуализировать свои сильные стороны:)</p>
+      </div>
+      <div class="strength-stage" data-reveal="right">
+        <img loading="lazy" decoding="async" src="assets/strengths.jpg" alt="Мои сильные стороны: харизма, интеллект, творчество, мудрость" class="strength-img">
+        <div class="strength-frame" aria-hidden="true">
+          <svg viewBox="0 0 200 360" preserveAspectRatio="none">
+            <defs>
+              <filter id="strRough" x="-15%" y="-10%" width="130%" height="120%">
+                <feTurbulence type="fractalNoise" baseFrequency="0.018" numOctaves="2" seed="7" result="n"></feTurbulence>
+                <feDisplacementMap in="SourceGraphic" in2="n" scale="3"></feDisplacementMap>
+              </filter>
+            </defs>
+            <path d="M30 14 L86 14 L100 46 L114 14 L170 14 Q192 14 192 36 L192 324 Q192 346 170 346 L30 346 Q8 346 8 324 L8 36 Q8 14 30 14 Z" fill="none" stroke="#e11414" stroke-width="5" stroke-linejoin="round" stroke-linecap="round" filter="url(#strRough)"></path>
+          </svg>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- ============ WORKS / GALLERY ============ -->
+  <section class="section" id="work" data-screen-label="Work">
+    <div class="section-head" data-reveal>
+      <div>
+        <div class="eyebrow">Избранные работы — 02 / 03</div>
+        <h2 class="h2" style="margin-top:12px;">Четыре кейса,<br>в деталях.</h2>
+      </div>
+      <p class="lead muted" style="max-width:38ch;">Каждый открывается целиком — задача, процесс, решение и результат — с живым кликабельным прототипом внутри.</p>
+    </div>
+
+    <div class="gallery">
+
+      <!-- 01 SELECT — AI-сомелье -->
+      <a class="case-card" href="cases/select.html" data-reveal>
+        <div class="cc-preview wine">
+          <img class="cc-img" loading="lazy" decoding="async" src="assets/case-wine.png" alt="Электронный сомелье — превью">
+          <div class="cc-badges"><span class="tag tag-blue">3D · Интерактивная панель</span><span class="cc-num">01</span></div>
+        </div>
+        <div class="cc-foot">
+          <div class="cc-meta"><span class="tag">Перекрёсток Select</span><span class="tag">TOV &amp; голос</span><span class="tag">Промпт-сценарии</span></div>
+          <h3>Электронный сомелье <span class="arr">↗</span></h3>
+          <p class="desc"><span style="color: rgb(58, 58, 65)">Цифровой AI-консультант, который помогает покупателям подобрать вино в зависимости от повода и пожеланий в магазине</span></p>
+        </div>
+      </a>
+
+      <!-- 02 Анонс Writer — GPT-агент -->
+      <a class="case-card" href="cases/chat.html" data-reveal>
+        <div class="cc-preview cream">
+          <img class="cc-img" loading="lazy" decoding="async" src="assets/case-briefs.png" alt="Анонс Writer — превью">
+          <div class="cc-badges"><span class="tag tag-blue">GPT-агент · Food.ru</span><span class="cc-num">02</span></div>
+        </div>
+        <div class="cc-foot">
+          <div class="cc-meta"><span class="tag">Кастомный GPT</span><span class="tag">Промптинг</span><span class="tag">Редактура</span></div>
+          <h3>Анонс Writer <span class="arr">↗</span></h3>
+          <p class="desc">GPT-агент, который пишет анонсы по брифам в стилистике Food.ru — анализирует бриф, задаёт вопросы и редактирует в canvas.</p>
+        </div>
+      </a>
+
+      <!-- 03 Тематические клубы -->
+      <a class="case-card" href="cases/editorial.html" data-reveal>
+        <div class="cc-preview paper">
+          <img class="cc-img" loading="lazy" decoding="async" src="assets/case-groceries.jpg" alt="Тематические клубы Пятёрочки — превью">
+          <div class="cc-badges"><span class="tag tag-blue">Контент в приложении</span><span class="cc-num">03</span></div>
+        </div>
+        <div class="cc-foot">
+          <div class="cc-meta"><span class="tag">Контент-стратегия</span><span class="tag">TOV</span><span class="tag">UX-структура</span></div>
+          <h3>Тематические клубы «Пятёрочки» <span class="arr">↗</span></h3>
+          <p class="desc">Перезапуск контентной экосистемы тематических клубов в приложении — из промо-разделов в interest-based комьюнити.</p>
+        </div>
+      </a>
+
+      <!-- 04 Платформа брифов -->
+      <a class="case-card" href="cases/brief.html" data-reveal>
+        <div class="cc-preview dark">
+          <img class="cc-img" loading="lazy" decoding="async" src="assets/case-email.jpg" alt="Платформа контент-брифов — превью">
+          <div class="cc-badges"><span class="tag tag-blue">Веб-продукт · B2B</span><span class="cc-num">04</span></div>
+        </div>
+        <div class="cc-foot">
+          <div class="cc-meta"><span class="tag">UX-флоу</span><span class="tag">AI-powered</span><span class="tag">Формы</span></div>
+          <h3>Платформа контент-брифов <span class="arr">↗</span></h3>
+          <p class="desc">Внутренний AI-инструмент для сбора и валидации партнёрских контент-брифов — меньше итераций, чистый контент-план.</p>
+        </div>
+      </a>
+
+    </div>
+  </section>
+
+  <!-- ============ CONTACT ============ -->
+  <section class="section" id="contact" data-screen-label="Contact">
+    <div class="contact-panel" data-reveal>
+      <div class="cbg" aria-hidden="true">
+        <span class="cblob b1"></span>
+        <span class="cblob b2"></span>
+        <span class="cblob b3"></span>
+        <span class="cblob b4"></span>
+      </div>
+      <div class="eyebrow" style="color:rgba(255,255,255,.55);">Контакты — 03 / 03</div>
+      <h2 class="display" style="margin:16px 0 30px;">Давайте вместе создавать классные AI-продукты!</h2>
+      <div class="contact-grid">
+        <div>
+          <p class="lead" style="color:rgba(255,255,255,.7);max-width:34ch;margin-bottom:22px;">Открыта к продуктовым ролям и проектам в AI.</p>
+          <a class="email-big" href="mailto:Polina.Sentebova01@gmail.com">Polina.Sentebova01@gmail.com<span class="uline"></span></a>
+        </div>
+        <div class="contact-links">
+          <a class="clink" href="https://t.me/polinasent" target="_blank" rel="noopener"><div><div class="k">Telegram</div><div class="v">@polinasent</div></div><span class="ci">→</span></a>
+          <a class="clink" href="mailto:Polina.Sentebova01@gmail.com"><div><div class="k">Почта</div><div class="v">Polina.Sentebova01</div></div><span class="ci">→</span></a>
+          <a class="clink" href="#work"><div><div class="k">Сфера</div><div class="v">AI · Голосовые ассистенты</div></div><span class="ci">↗</span></a>
+        </div>
+      </div>
+    </div>
+  </section>
+
+</main>
+
+<footer class="foot wrap">
+  <div class="foot-inner">
+    <span>© 2026 Полина Сентебова — собрано вручную.</span>
+    <span>Наверх <a href="#bio" style="color:var(--ink);font-weight:600;">↑</a></span>
+  </div>
+</footer>
+
+<script src="embed.js"></script>
+<script>
+  const items = [...document.querySelectorAll('[data-reveal]')];
+  const reveal = el => el.classList.add('revealed');
+  const revealAll = () => items.forEach(reveal);
+  if('IntersectionObserver' in window){
+    const io = new IntersectionObserver((es)=>{
+      es.forEach(e=>{ if(e.isIntersecting){ reveal(e.target); io.unobserve(e.target); } });
+    },{threshold:.06, rootMargin:'0px 0px -4% 0px'});
+    items.forEach((el,i)=>{
+      const g = el.closest('.gallery');
+      if(g){ el.style.setProperty('--rd', ([...g.children].indexOf(el))*0.09+'s'); }
+      else  { el.style.setProperty('--rd', (i%3)*0.06+'s'); }
+      io.observe(el);
+    });
+    // fallbacks — never leave content stuck invisible if IO/timing misbehaves
+    setTimeout(revealAll, 650);
+    window.addEventListener('load', ()=>setTimeout(revealAll, 100));
+    document.addEventListener('DOMContentLoaded', ()=>setTimeout(revealAll, 900));
+  } else {
+    revealAll();
+  }
+
+  /* Mount the heavy ID-card iframe AFTER first paint so it never blocks the
+     page's load event (it's a self-contained React/Babel bundle). */
+  function mountIdCard(){
+    document.querySelectorAll('iframe[data-src]').forEach(f=>{
+      if(!f.src){ f.src = f.dataset.src; }
+    });
+  }
+  if(document.readyState === 'complete') setTimeout(mountIdCard, 60);
+  else window.addEventListener('load', ()=>setTimeout(mountIdCard, 60));
+  // hard fallback in case 'load' is delayed by other resources
+  setTimeout(mountIdCard, 1200);
+
+  /* ---- interactive section navigation: sliding pill + reading progress ---- */
+  (function(){
+    const links = [...document.querySelectorAll('.nav-links a')];
+    const pill  = document.querySelector('.nav-pill');
+    const prog  = document.querySelector('.scroll-prog');
+    const secs  = links
+      .map(a=>{ const id=a.getAttribute('href'); return { a, el:(id&&id[0]==='#')?document.querySelector(id):null }; })
+      .filter(o=>o.el);
+    let current=null;
+    function movePill(a){
+      if(!pill||!a) return;
+      pill.style.width = a.offsetWidth+'px';
+      pill.style.transform = 'translateY(-50%) translateX('+a.offsetLeft+'px)';
+      pill.style.opacity = '1';
+    }
+    function onScroll(){
+      const h=document.documentElement;
+      const max=h.scrollHeight-h.clientHeight;
+      if(prog) prog.style.width = (max>0 ? (h.scrollTop/max*100) : 0)+'%';
+      const line = window.innerHeight*0.4;
+      let act = secs[0];
+      for(const o of secs){ if(o.el.getBoundingClientRect().top <= line) act=o; }
+      if(act && act!==current){
+        current=act;
+        secs.forEach(o=>o.a.classList.toggle('active', o===act));
+        movePill(act.a);
+      }
+    }
+    window.addEventListener('scroll', onScroll, {passive:true});
+    window.addEventListener('resize', ()=>{ if(current) movePill(current.a); });
+    setTimeout(onScroll, 80);
+  })();
+</script>
+</body>
+</html>
